@@ -1,0 +1,29 @@
+[package]
+name = "http-file-server"
+version = "0.0.0"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# Web Framework:
+axum = { version = "0.6.1", features = ["http2"] }
+
+# Middleware:
+tower = { version = "0.4.13", features = ["util", "timeout"] }
+tower-http = { version = "0.3.4", features = ["fs", "trace"] }
+
+# Async Runtime:
+tokio = { version = "1.21.2", features = ["full"] }
+
+# Logging:
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Environment variables:
+envy = "0.4.2"
+
+# Serialisation/Deserialisation:
+serde = { version = "1.0", features = ["derive"] }
