@@ -11,14 +11,14 @@ export let options = {
 
 export default function() {
   group('API health check', () => {
-    const response = http.get(`http://${__ENV.BETSLIP_URL}/`);
+    const response = http.get(`http://${__ENV.APP_URL}/`);
     check(response, {
       "status code should be 200": res => res.status === 200,
     });
   });
 
   group('Static file server health check', () => {
-    const response = http.get(`http://${__ENV.BETSLIP_URL}/public/style.css`);
+    const response = http.get(`http://${__ENV.APP_URL}/public/style.css`);
     check(response, {
       "status code should be 200": res => res.status === 200,
     });

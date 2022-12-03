@@ -19,7 +19,6 @@ RUN RUST_VERSION=$(rustc --version) cargo build --release
 
 FROM gcr.io/distroless/cc-debian11
 COPY --from=builder /opt/data/target/release/http-file-server /usr/bin/http-file-server 
-COPY --from=builder /opt/data/templates /usr/bin/templates 
 COPY --from=builder /opt/data/public /usr/bin/public 
 
 WORKDIR /usr/bin

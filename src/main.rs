@@ -47,6 +47,7 @@ async fn main() {
             tracing::info!("BRANCH: {}", BRANCH);
             tracing::info!("BUILD_USER: {}", BUILD_USER);
             tracing::info!("RUST_VERSION: {}", RUST_VERSION);
+            tracing::debug!("APP_NAME: {:#?}", app_config.app_environment);
             tracing::debug!("APP_ENVIRONMENT: {:#?}", app_config.app_environment);
             tracing::debug!("LOG_LEVEL: {:#?}", app_config.log_level);
 
