@@ -1,0 +1,61 @@
+version: 2.1
+orbs:
+  docker: circleci/docker@1.7.0
+  kubernetes: circleci/kubernetes@1.3.1
+jobs:
+  test-unit:
+    docker:
+      - image: i0nw/rust-wasm-builder:1.65.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Unit Tests
+          command: make test
+  test-integration:
+    machine: # executor type
+      image: ubuntu-2004:202010-01 # # recommended linux image - includes Ubuntu 20.04, docker 19.03.13, docker-compose 1.27.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: docker login -u i0nw -p $(echo ${DOCKERHUB_PASSWORD})
+      - run: make docker-run-d
+      - run: make docker-test-functional
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Set version
+          command: |
+            make print-version | cat > version.txt
+            make print-branch | cat > branch.txt
+            make print-rev | cat > rev.txt
+            make print-build-user | cat > build-user.txt
+      - kubernetes/install-kubectl
+      - kubernetes/install-kubeconfig:
+          kubeconfig: KUBECONFIG_DATA
+      - setup_remote_docker:
+          docker_layer_caching: false
+      - run: docker login -u i0nw -p $(echo ${DOCKERHUB_PASSWORD})
+      - run:  docker build . --build-arg DOCKER_ARG_VERSION=$(cat version.txt) --build-arg DOCKER_ARG_REV=$(cat rev.txt) --build-arg DOCKER_ARG_BRANCH=$(cat branch.txt) --build-arg DOCKER_ARG_BUILD_USER=$(cat build-user.txt) -t i0nw/http-file-server:latest
+      - run: docker tag i0nw/http-file-server:latest i0nw/http-file-server:$(cat version.txt)
+      - run: |
+          docker push i0nw/http-file-server:latest
+          docker push i0nw/http-file-server:$(cat version.txt)
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - test-unit:
+          filters:
+            branches:
+              only: main
+      - test-integration:
+          requires:
+            - test-unit
+      - deploy:
+          requires:
+            - test-integration
