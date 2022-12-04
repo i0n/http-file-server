@@ -18,7 +18,7 @@ export default function() {
   });
 
   group('Static file server health check', () => {
-    const response = http.get(`http://${__ENV.APP_URL}/public/style.css`);
+    const response = http.get(`http://${__ENV.APP_URL}/style.css`);
     check(response, {
       "status code should be 200": res => res.status === 200,
     });
