@@ -15,6 +15,7 @@ use axum::{
 };
 use std::{io, str, time::Duration};
 use tower::{BoxError, ServiceBuilder};
+use tower_http::compression::CompressionLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
@@ -72,6 +73,7 @@ async fn main() {
                         }))
                         .timeout(Duration::from_secs(10))
                         .layer(TraceLayer::new_for_http())
+                        .layer(CompressionLayer::new())
                         .into_inner(),
                 );
             let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
