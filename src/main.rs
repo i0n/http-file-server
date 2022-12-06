@@ -16,12 +16,13 @@ use axum::{
 use std::{io, str, time::Duration};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::compression::CompressionLayer;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 
 // Route Handlers ////////////////////////////////
 
 async fn handle_error(_err: io::Error) -> impl IntoResponse {
+    tracing::debug!("handle_error");
     (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
 }
 
@@ -56,7 +57,11 @@ async fn main() {
             let app = Router::new()
                 .nest_service(
                     "/",
-                    get_service(ServeDir::new("public")).handle_error(handle_error),
+                    get_service(
+                        ServeDir::new("public")
+                            .not_found_service(ServeFile::new("public/index.html")),
+                    )
+                    .handle_error(handle_error),
                 )
                 // Add middleware to all routes
                 .layer(
@@ -76,6 +81,7 @@ async fn main() {
                         .layer(CompressionLayer::new())
                         .into_inner(),
                 );
+
             let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
             tracing::debug!("listening on {}", addr);
             if app_config.app_environment == "production" {
