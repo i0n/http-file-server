@@ -58,8 +58,7 @@ async fn main() {
                 .nest_service(
                     "/",
                     get_service(
-                        ServeDir::new("public")
-                            .not_found_service(ServeFile::new("public/index.html")),
+                        ServeDir::new("public").fallback(ServeFile::new("public/index.html")),
                     )
                     .handle_error(handle_error),
                 )
