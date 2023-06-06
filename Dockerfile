@@ -1,4 +1,4 @@
-FROM rust:1.69.0 as builder
+FROM rust:1.70.0 as builder
 
 ARG DOCKER_ARG_VERSION
 ARG DOCKER_ARG_REV
