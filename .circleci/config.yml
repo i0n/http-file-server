@@ -5,7 +5,7 @@ orbs:
 jobs:
   test-unit:
     docker:
-      - image: i0nw/rust-wasm-builder:1.75
+      - image: i0nw/rust-wasm-builder:1.75.0
     working_directory: ~/repo
     steps:
       - checkout
