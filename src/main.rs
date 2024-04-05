@@ -9,22 +9,13 @@ use tokio::signal;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // Crates
-use axum::{
-    error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse,
-    routing::get_service, Router,
-};
-use std::{io, str, time::Duration};
+use axum::{error_handling::HandleErrorLayer, http::StatusCode, routing::get_service, Router};
+use std::{str, time::Duration};
+use tokio::net::TcpListener;
 use tower::{BoxError, ServiceBuilder};
 use tower_http::compression::CompressionLayer;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
-
-// Route Handlers ////////////////////////////////
-
-async fn handle_error(_err: io::Error) -> impl IntoResponse {
-    tracing::debug!("handle_error");
-    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
-}
 
 // Main /////////////////////////////
 
@@ -59,8 +50,7 @@ async fn main() {
                     "/",
                     get_service(
                         ServeDir::new("public").fallback(ServeFile::new("public/index.html")),
-                    )
-                    .handle_error(handle_error),
+                    ),
                 )
                 // Add middleware to all routes
                 .layer(
@@ -83,17 +73,14 @@ async fn main() {
 
             let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
             tracing::debug!("listening on {}", addr);
+            let listener = TcpListener::bind(addr).await.unwrap();
             if app_config.app_environment == "production" {
-                axum::Server::bind(&addr)
-                    .serve(app.into_make_service())
+                axum::serve(listener, app)
                     .with_graceful_shutdown(shutdown_signal())
                     .await
                     .unwrap();
             } else {
-                axum::Server::bind(&addr)
-                    .serve(app.into_make_service())
-                    .await
-                    .unwrap();
+                axum::serve(listener, app).await.unwrap();
             }
         }
         Err(error) => panic!("{:#?}", error),
